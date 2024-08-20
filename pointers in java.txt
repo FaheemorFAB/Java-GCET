@@ -1,0 +1,122 @@
+
+References do not point to memory
+Java references are not pointer. They contain some kind of pointer data or something because that comes from the nature of today computer architecture but this is totally up to the JVM implementation what it stores in a reference value and how it accesses the object it refers to. It could be absolutely ok though not too effective implementation to have a huge array of pointers each pointing to an object of the JVM and the references be indices to this array.
+
+In reality JVM implement the references as a kind of pointer mix, where some of the bits are flags and some of the bits are “pointing” to some memory location relative to some area.
+
+Why do JVMs do that instead of pointers?
+
+The reason is the garbage collection. To implement an effective garbage collection and to avoid the fragmentation of the memory the JVM regularly moves the objects around in the memory. When memory occupied by objects not referenced anymore are freed and we happen to have a small object still used and referenced in the middle of a huge memory block available we do not want that memory block to be split. Instead the JVM moves the object to a different memory area and updates all the references to that object to keep track of the new location. Some GC implementations stop the other Java threads for the time these updates happen, so that no Java code uses a reference not updated but objects moved. Other GC implementations integrate with the underlying OS virtual memory management to cause page fault when such an access occurs to avoid the stopping of the application threads.
+
+However the thing is that references are NOT pointers and it is the responsibility of the implementation of the JVM how it manages all these situations.
+
+The next topic strongly related to this area is parameter passing.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Are parameters passed by value or passed by reference in Java?
+As long as long we work only with objects Java passes by reference. Whatever expression you write to the actual function call when the result is an object a reference to the object is passed to the method. If the expression is a variable then the reference contained by the variable (which is the value of the variable, so this is a kind of pass-by-value) is passed.
+
+When you pass a primitive (int, boolean etc) then the argument is passed by value. If the expression evaluated results a primitive then it is passed by value. If the expression is a variable then the primitive value contained by the variable is passed. That way we can say looking at the three example languages that
+
+PASCAL declares how to pass arguments
+C calculates the actual value where it is passed
+Java decides based on the type of the argument
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+All objects in Java are references and you can use them like pointers.
+
+abstract class Animal
+{...
+}
+
+class Lion extends Animal
+{...
+}
+
+class Tiger extends Animal
+{   
+public Tiger() {...}
+public void growl(){...}
+}
+
+Tiger first = null;
+Tiger second = new Tiger();
+Tiger third;
+Dereferencing a null:
+
+first.growl();  // ERROR, first is null.    
+third.growl(); // ERROR, third has not been initialized.
+Aliasing Problem:
+
+third = new Tiger();
+first = third;
+Losing Cells:
+
+second = third; // Possible ERROR. The old value of second is lost.    
+You can make this safe by first assuring that there is no further need of the old value of second or assigning another pointer the value of second.
+
+first = second;
+second = third; //OK
+Note that giving second a value in other ways (NULL, new...) is just as much a potential error and may result in losing the object that it points to.
+
+The Java system will throw an exception (OutOfMemoryError) when you call new and the allocator cannot allocate the requested cell. This is very rare and usually results from run-away recursion.
+
+Note that, from a language point of view, abandoning objects to the garbage collector are not errors at all. It is just something that the programmer needs to be aware of. The same variable can point to different objects at different times and old values will be reclaimed when no pointer references them. But if the logic of the program requires maintaining at least one reference to the object, It will cause an error.
+
+Novices often make the following error.
+
+Tiger tony = new Tiger();
+tony = third; // Error, the new object allocated above is reclaimed. 
+What you probably meant to say was:
+
+Tiger tony = null;
+tony = third; // OK.
+Improper Casting:
+
+Lion leo = new Lion();
+Tiger tony = (Tiger)leo; // Always illegal and caught by compiler. 
+
+Animal whatever = new Lion(); // Legal.
+Tiger tony = (Tiger)whatever; // Illegal, just as in previous example.
+Lion leo = (Lion)whatever; // Legal, object whatever really is a Lion.
+Pointers in C:
+
+void main() {   
+    int*    x;  // Allocate the pointers x and y
+    int*    y;  // (but not the pointees)
+
+    x = malloc(sizeof(int));    // Allocate an int pointee,
+                                // and set x to point to it
+
+    *x = 42;    // Dereference x to store 42 in its pointee
+
+    *y = 13;    // CRASH -- y does not have a pointee yet
+
+    y = x;      // Pointer assignment sets y to point to x's pointee
+
+    *y = 13;    // Dereference y to store 13 in its (shared) pointee
+}
+Pointers in Java:
+
+class IntObj {
+    public int value;
+}
+
+public class Binky() {
+    public static void main(String[] args) {
+        IntObj  x;  // Allocate the pointers x and y
+        IntObj  y;  // (but not the IntObj pointees)
+
+        x = new IntObj();   // Allocate an IntObj pointee
+                            // and set x to point to it
+
+        x.value = 42;   // Dereference x to store 42 in its pointee
+
+        y.value = 13;   // CRASH -- y does not have a pointee yet
+
+        y = x;  // Pointer assignment sets y to point to x's pointee
+
+        y.value = 13;   // Deference y to store 13 in its (shared) pointee
+    }
+} 
+UPDATE: as suggested in the comments one must note that C has pointer arithmetic. However, we do not have that in Java.
