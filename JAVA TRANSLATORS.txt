@@ -1,0 +1,21 @@
+Certainly! Let's explore the relationship between `javac` and the JVM (Java Virtual Machine):
+
+1. **`javac` - The Java Compiler:**
+   - `javac` is a fundamental tool in the Java Development Kit (JDK).
+   - It reads Java source code files (with a `.java` extension) and compiles them into bytecode.
+   - The resulting bytecode is stored in class files (with a `.class` extension).
+   - For example, if you have a source file named `MyClass.java`, you can compile it using:
+     ```
+     javac MyClass.java
+     ```
+   - The output will be a bytecode class file named `MyClass.class`.
+   - Inner classes also produce additional class files (e.g., `MyClass$MyInnerClass.class`).
+   - By default, `javac` places each class file in the same directory as its corresponding source file.
+
+2. **JVM (Java Virtual Machine):**
+   - The JVM interprets bytecode and executes Java applications.
+   - It translates platform-independent bytecode into native machine code that the underlying hardware can execute.
+   - When you run a Java program (e.g., `java MyClass`), the JVM loads the bytecode from the `.class` files and executes it.
+   - The JVM handles memory management, garbage collection, and other runtime tasks.
+
+In summary, `javac` compiles Java source code into bytecode, which the JVM then executes. This separation allows Java programs to run on any platform with a compatible JVM.
